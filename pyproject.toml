@@ -1,0 +1,48 @@
+[project]
+name = "multimodel-rag"
+version = "0.1.0"
+description = "Agentic multimodal RAG with FastAPI, LangGraph and LangChain"
+readme = "README.md"
+authors = [
+    { name = "underiya-ai", email = "aniketunderiya20@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "langchain",
+    "langchain-core",
+    "langchain-groq",
+    "langchain-huggingface",
+    "langchain-pinecone",
+    "pinecone",
+    "sentence-transformers",
+    "pymupdf",
+    "groq",
+    "pandas",
+    "pillow",
+    "tabulate",
+    "uvicorn",
+    "fastapi",
+    "pydantic-settings",
+    "langgraph",
+    "python-multipart",
+]
+
+[project.scripts]
+multimodel-rag = "multimodel_rag:main"
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "httpx",
+    "ruff",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
