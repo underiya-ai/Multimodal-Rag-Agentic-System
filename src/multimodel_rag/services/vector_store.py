@@ -8,7 +8,7 @@ from multimodel_rag.config import get_settings
 
 @lru_cache
 def get_embeddings() -> HuggingFaceEmbeddings:
-    """Model turn text into """
+    """Model turn text into Number [list of number] """
     settings=get_settings()
     return HuggingFaceEmbeddings(
         model_name=settings.embedding_model,
