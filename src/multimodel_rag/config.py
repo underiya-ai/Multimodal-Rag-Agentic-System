@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     app_name: str = "Agentic Multimodal RAG"
 
     # API keys (must be set in .env)
-    groq_api_key: str
-    pinecone_api_key: str
+    GROQ_API_KEY: str
+    PINECONE_API_KEY: str
     api_key: str  # secret key that clients send to call our API
 
     # AI models
@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     embedding_dimension: int = 384  # vector size of the MiniLM model
 
     # Pinecone (vector database)
-    pinecone_index_name: str = "novacore-multimodal-rag"
+    pinecone_index_name: str = "multimodal-rag"
     pinecone_namespace: str = "fy2026-demo"
     pinecone_cloud: str = "aws"
     pinecone_region: str = "us-east-1"
