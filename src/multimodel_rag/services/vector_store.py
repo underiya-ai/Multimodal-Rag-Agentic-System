@@ -21,7 +21,7 @@ def get_embeddings() -> HuggingFaceEmbeddings:
 def get_vectorstore() -> PineconeVectorStore:
     """Vector store connected to Pinecone. Creates the index on first use."""
     settings = get_settings()
-    pc = Pinecone(api_key=settings.PINECONE_API_KEY)
+    pc = Pinecone(api_key=settings.pinecone_api_key)
 
     if not pc.has_index(settings.pinecone_index_name):
         pc.create_index(

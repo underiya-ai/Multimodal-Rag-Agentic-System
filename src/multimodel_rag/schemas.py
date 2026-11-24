@@ -31,6 +31,17 @@ class AskResponse(BaseModel):
     sources: list[SourceItem]
 
 
+class VoiceAskResponse(BaseModel):
+    """The answer to a voice query, returned with synthesized audio."""
+
+    transcribed_question: str
+    answer: str
+    audio_base64: str      # base64 encoded MP3 data URI
+    used_vision: bool
+    query_rewrites: int
+    sources: list[SourceItem]
+
+
 class JobResponse(BaseModel):
     """Status of a PDF processing job."""
 

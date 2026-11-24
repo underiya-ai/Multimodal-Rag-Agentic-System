@@ -18,9 +18,9 @@ def get_text_llm() -> ChatGroq:
 @lru_cache
 def get_vision_llm() -> ChatGroq:
     """Model that can read Image (charts and diagram)"""
-    settings=get_settings()
+    settings = get_settings()
     return ChatGroq(
         model=settings.vision_model,
-        api_key=settings.vision_model,
-        temperature=0
+        api_key=settings.groq_api_key,
+        temperature=0,
     )

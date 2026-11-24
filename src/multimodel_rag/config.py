@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     app_name: str = "Agentic Multimodal RAG"
 
     # API keys (must be set in .env)
-    GROQ_API_KEY: str
-    PINECONE_API_KEY: str
+    groq_api_key: str
+    pinecone_api_key: str
     api_key: str  # secret key that clients send to call our API
 
     # AI models
@@ -35,9 +35,18 @@ class Settings(BaseSettings):
     upload_dir: str = "data/uploads"
     image_dir: str = "data/images"
 
+    # Voice settings (STT & TTS)
+    whisper_model: str = "whisper-large-v3-turbo"
+    tts_voice: str = "en-US-JennyNeural"
+
     # Upload limit and allowed frontend URLs
     max_upload_mb: int = 20
-    allowed_origins: list[str] = ["http://localhost:3000"]
+    allowed_origins: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
 
 @lru_cache

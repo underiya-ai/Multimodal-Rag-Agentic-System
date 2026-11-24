@@ -482,6 +482,21 @@ wheels = [
 ]
 
 [[package]]
+name = "edge-tts"
+version = "7.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "certifi" },
+    { name = "tabulate" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a3/ce/14e713ba774063e00444a091eb790539fe0d848a9d8df35fd81a7639a28e/edge_tts-7.3.1.tar.gz", hash = "sha256:ee1fabf911b9ea83b38ae93aee5619ee41eaf0b109fef6e65d797dc4ebf1f20f", size = 35843, upload-time = "2026-10-13T18:22:53.226Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/35/86/3b97d755992777d5a9ca0e45a8ec96cc9858b2d6dd8f65f3f688d60e8709/edge_tts-7.3.1-py3-none-any.whl", hash = "sha256:2a3c79d6235a7a736d681233823ce5492e829b43eb47beae49aa181237a8f9a4", size = 38908, upload-time = "2026-10-13T18:22:51.772Z" },
+]
+
+[[package]]
 name = "fastapi"
 version = "0.143.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1377,6 +1392,7 @@ name = "multimodel-rag"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "edge-tts" },
     { name = "fastapi" },
     { name = "groq" },
     { name = "langchain" },
@@ -1405,6 +1421,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "edge-tts", specifier = ">=7.3.1" },
     { name = "fastapi" },
     { name = "groq" },
     { name = "langchain" },

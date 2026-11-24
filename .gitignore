@@ -12,6 +12,12 @@ wheels/
 # .env file 
 .env
 
+# Node dependencies
+node_modules/
+frontend/node_modules/
+.npm/
+
 # data folder 
 /data
+
 
