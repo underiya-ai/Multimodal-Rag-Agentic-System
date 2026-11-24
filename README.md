@@ -6,20 +6,123 @@ This application ingests PDF documents containing text, tables, and images/chart
 
 ---
 
-## Architecture Overview
+## System Architecture
 
+### 1. End-to-End System & Data Flow
+```mermaid
+flowchart TD
+    subgraph Client["Client Layer (React / REST API)"]
+        UI["React.js Frontend (Perplexity-Style)"]
+        UserText["Text Input"] --> UI
+        UserVoice["Live Microphone (WebAudio)"] --> UI
+    end
+
+    subgraph API["FastAPI Backend Layer"]
+        Auth["Security & Auth (X-API-Key Check)"]
+        UI -->|HTTP Requests| Auth
+        
+        Router["API Routing"]
+        Auth --> Router
+        
+        IngestEndpoint["POST /api/v1/ingest"]
+        AskEndpoint["POST /api/v1/ask"]
+        VoiceEndpoint["POST /api/v1/voice/ask"]
+        
+        Router --> IngestEndpoint
+        Router --> AskEndpoint
+        Router --> VoiceEndpoint
+    end
+
+    subgraph Ingestion["Document Ingestion Pipeline (Background Task)"]
+        PDF["Uploaded PDF"]
+        IngestEndpoint --> PDF
+        
+        PDF --> ParseText["Text Extraction (PyMuPDF)"]
+        PDF --> ParseTable["Table Extraction (Pandas to Markdown)"]
+        PDF --> ParseImg["Image/Chart Extraction (Pillow)"]
+        
+        ParseImg --> VisionSummary["Groq Vision (qwen/qwen3.8-27b)"]
+        
+        ParseText --> Chunks["Chunk Preparation & SHA-256 Hashing"]
+        ParseTable --> Chunks
+        VisionSummary --> Chunks
+        
+        Chunks --> Embedder["HuggingFace (all-MiniLM-L6-v2)"]
+        Embedder --> VectorDB[("Pinecone Vector Database")]
+    end
+
+    subgraph VoiceSTT["Voice Processing (STT)"]
+        VoiceEndpoint --> Whisper["Groq Whisper (whisper-large-v3-turbo)"]
+        Whisper -->|Transcribed Text| AskEndpoint
+    end
+
+    subgraph Agent["LangGraph Adaptive Reasoning Agent"]
+        AskEndpoint --> GraphStart["START: Search Query"]
+        GraphStart --> Retrieve["retrieve: Vector Search"]
+        VectorDB -.->|Top-k Chunks| Retrieve
+        
+        Retrieve --> Grade["grade_documents: LLM Evaluation"]
+        Grade --> Decision{"Relevant?"}
+        
+        Decision -- "No (Retries Left)" --> Rewrite["rewrite_query: Query Reformulation"]
+        Rewrite --> Retrieve
+        
+        Decision -- "Yes & Visuals Found" --> VisionGen["generate_with_vision (Text + Base64 Images)"]
+        Decision -- "Yes & Text Only" --> TextGen["generate_text (Text Context Only)"]
+        Decision -- "No (Max Retries)" --> TextGen
+    end
+
+    subgraph VoiceTTS["Speech Synthesis (TTS)"]
+        VisionGen --> EdgeTTS["Edge Neural TTS (en-US-JennyNeural)"]
+        TextGen --> EdgeTTS
+        EdgeTTS --> AudioStream["MP3 Audio Stream"]
+    end
+
+    VisionGen --> ResponsePayload["JSON Response (Answer + Page Citations + Audio)"]
+    TextGen --> ResponsePayload
+    AudioStream --> ResponsePayload
+    ResponsePayload --> UI
 ```
-User Query
-    │
-    ▼
-[ retrieve ] ────────► Pinecone similarity search
-    │
-    ▼
-[ grade_documents ] ──► Fast LLM checks context relevance
-    │
-    ├─► If relevant & has visual diagrams ──► [ generate_with_vision ] (Groq Vision)
-    ├─► If relevant & text only           ──► [ generate_text ] (Groq LLM)
-    └─► If not relevant & retries left    ──► [ rewrite_query ] ──► (Loop back to retrieve)
+
+### 2. LangGraph Agent Decision State Machine
+```mermaid
+stateDiagram-v2
+    [*] --> Retrieve : User Question Submitted
+    
+    state "retrieve" as Retrieve {
+        [*] --> PineconeSearch : Similarity Search (top_k)
+        PineconeSearch --> CollectImages : Filter visual chunks & check file paths
+    }
+
+    Retrieve --> GradeDocuments : Context Chunks Collected
+    
+    state "grade_documents" as GradeDocuments {
+        [*] --> FastLLM : Evaluate relevance (Groq gpt-oss-20b)
+    }
+
+    state route_after_grading <<choice>>
+    GradeDocuments --> route_after_grading
+
+    route_after_grading --> GenerateWithVision : Relevant + Visual diagrams attached
+    route_after_grading --> GenerateText : Relevant + Text / Tables only
+    route_after_grading --> RewriteQuery : Irrelevant + retries < max_query_rewrites
+    route_after_grading --> GenerateText : Irrelevant + retries exhausted
+
+    state "rewrite_query" as RewriteQuery {
+        [*] --> ReformulateLLM : Optimize search query
+    }
+    RewriteQuery --> Retrieve : Re-query with new query
+
+    state "generate_with_vision" as GenerateWithVision {
+        [*] --> MultimodalLLM : Reason over text + Base64 images
+    }
+
+    state "generate_text" as GenerateText {
+        [*] --> TextOnlyLLM : Grounded answer citing page numbers
+    }
+
+    GenerateWithVision --> [*] : Return Answer & Sources
+    GenerateText --> [*] : Return Answer & Sources
 ```
 
 - **Extraction**: PyMuPDF extracts text, tables (converted to Markdown), and images.
